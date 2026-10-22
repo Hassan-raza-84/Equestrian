@@ -1,0 +1,608 @@
+@import "tailwindcss";
+
+/* ------------------------------------------------------------------
+   Design tokens. Every colour, size and easing used on the site lives
+   here. No arbitrary hex values in components.
+------------------------------------------------------------------- */
+@theme {
+  --color-*: initial;
+  --color-cream-50: #fbf7ec;
+  --color-cream-100: #f3ecd9;
+  --color-cream-300: #e3d8bd;
+  --color-green-900: #0b2a1e;
+  --color-green-700: #1c4b32;
+  --color-green-500: #2f6b49;
+  --color-night: #050806;
+  --color-ink: #17211b;
+  --color-ink-muted: #56645b;
+  /* Brass is used only for focus rings and the odd hairline. Darkened from
+     the first spec (#a9854f) so it reaches 3:1 on both cream and green. */
+  --color-brass: #9a7640;
+
+  --ease-brand: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-curtain: cubic-bezier(0.76, 0, 0.24, 1);
+
+  --text-display-xl: clamp(2.6rem, 1.1rem + 5.4vw, 6rem);
+  --text-display-xl--line-height: 1.06;
+  --text-display-xl--letter-spacing: -0.02em;
+  --text-display-lg: clamp(2.1rem, 1.1rem + 3.2vw, 4rem);
+  --text-display-lg--line-height: 1.08;
+  --text-display-lg--letter-spacing: -0.015em;
+  --text-display-md: clamp(1.7rem, 1.1rem + 1.8vw, 2.6rem);
+  --text-display-md--line-height: 1.12;
+  --text-display-md--letter-spacing: -0.01em;
+  --text-lead: clamp(1.125rem, 1.02rem + 0.5vw, 1.4rem);
+  --text-lead--line-height: 1.5;
+  --text-body: 1.0625rem;
+  --text-body--line-height: 1.65;
+  --text-small: 0.9rem;
+  --text-small--line-height: 1.5;
+
+  --spacing-gutter: clamp(1.25rem, 0.5rem + 3.2vw, 4rem);
+  --spacing-section: clamp(5rem, 3rem + 8vw, 10rem);
+  --container-page: 80rem;
+}
+
+/* Fonts reference variables set by next/font, so they use inline resolution. */
+@theme inline {
+  --font-display: var(--font-bodoni), "Bodoni 72", Didot, "Bodoni MT", Georgia, serif;
+  --font-text: var(--font-hanken), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+:root {
+  --dur-quick: 240ms;
+  --dur-base: 600ms;
+  --dur-slow: 1100ms;
+}
+
+html {
+  background: var(--color-cream-100);
+  color: var(--color-ink);
+  scroll-padding-top: 7rem;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  font-family: var(--font-text);
+  font-size: var(--text-body);
+  line-height: 1.65;
+  min-height: 100svh;
+  font-optical-sizing: auto;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Bodoni Moda's hairlines get extremely fine at its largest optical size.
+   Cap it so large headlines stay legible on every screen. */
+.text-display-xl,
+.text-display-lg,
+.text-display-md {
+  text-wrap: balance;
+}
+.text-display-xl,
+.text-display-lg {
+  font-optical-sizing: none;
+  font-variation-settings: "opsz" 34;
+}
+
+::selection {
+  background: var(--color-green-700);
+  color: var(--color-cream-100);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-brass);
+  outline-offset: 3px;
+  border-radius: 1px;
+}
+
+/* ---------------- Splash and page-load states ---------------- */
+html.splash-lock {
+  overflow: hidden;
+}
+html[data-splash="skip"] #splash {
+  display: none;
+}
+/* Failsafe: if scripts never run, the splash must not trap the page. */
+#splash {
+  animation: splash-failsafe 0s linear 8s forwards;
+}
+@keyframes splash-failsafe {
+  to {
+    visibility: hidden;
+    pointer-events: none;
+  }
+}
+
+/* Hero text is painted straight away under the splash (fast first paint). When no
+   splash plays (return visit), it stays hidden until its reveal is ready, so it
+   never flashes. */
+html[data-splash="skip"] .lr {
+  visibility: hidden;
+}
+
+/* ---------------- Image placeholder pulse ---------------- */
+@keyframes mark-pulse {
+  0%,
+  100% {
+    opacity: 0.1;
+    transform: scale(0.96);
+  }
+  50% {
+    opacity: 0.26;
+    transform: scale(1);
+  }
+}
+.mark-pulse {
+  animation: mark-pulse 1.8s var(--ease-brand) infinite;
+}
+
+/* ---------------- Mobile menu ---------------- */
+@keyframes menu-in {
+  from {
+    clip-path: inset(0 0 100% 0);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+@keyframes menu-out {
+  from {
+    clip-path: inset(0 0 0 0);
+  }
+  to {
+    clip-path: inset(0 0 100% 0);
+  }
+}
+@keyframes line-up {
+  from {
+    transform: translateY(110%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+.menu-panel[data-state="open"] {
+  animation: menu-in 700ms var(--ease-curtain) both;
+}
+.menu-panel[data-state="closed"] {
+  animation: menu-out 500ms var(--ease-curtain) both;
+}
+.menu-panel[data-state="open"] .menu-line > * {
+  animation: line-up 900ms var(--ease-brand) both;
+  animation-delay: calc(260ms + var(--i, 0) * 70ms);
+}
+.menu-line {
+  overflow: hidden;
+}
+
+/* ---------------- Links ---------------- */
+.link-underline {
+  background-image: linear-gradient(currentColor, currentColor);
+  background-repeat: no-repeat;
+  background-position: 0 100%;
+  background-size: 0% 1px;
+  transition: background-size 500ms var(--ease-brand);
+}
+.link-underline:hover,
+.link-underline[aria-current="page"] {
+  background-size: 100% 1px;
+}
+
+/* ---------------- Lenis ---------------- */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+/* ---------------- Reduced motion ---------------- */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .lr {
+    visibility: visible !important;
+  }
+}
+
+/* ------------------------------------------------------------------
+   Stage 2 to 7 additions
+------------------------------------------------------------------- */
+
+/* Placeholder copy that must be replaced before launch. */
+.verify {
+  background: rgb(154 118 64 / 0.16);
+  color: var(--color-ink);
+  padding: 0 0.2em;
+  box-shadow: inset 0 -1px 0 var(--color-brass);
+}
+
+/* Accordion */
+.acc-icon::before,
+.acc-icon::after {
+  content: "";
+  position: absolute;
+  background: var(--color-green-900);
+  transition: transform 500ms var(--ease-brand);
+}
+.acc-icon::before {
+  left: 0;
+  right: 0;
+  top: calc(50% - 0.5px);
+  height: 1px;
+}
+.acc-icon::after {
+  top: 0;
+  bottom: 0;
+  left: calc(50% - 0.5px);
+  width: 1px;
+}
+details[open] .acc-icon::after {
+  transform: scaleY(0);
+}
+
+/* Mobile menu, on the native dialog element */
+dialog.menu-panel {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+  background: var(--color-green-900);
+  color: var(--color-cream-100);
+  overflow: hidden;
+}
+dialog.menu-panel::backdrop {
+  background: transparent;
+}
+
+/* Form fields: quiet underlines */
+.field {
+  display: block;
+  width: 100%;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid rgb(11 42 30 / 0.35);
+  padding: 0.85rem 0;
+  font: inherit;
+  color: var(--color-ink);
+  border-radius: 0;
+  transition: border-color 300ms var(--ease-brand);
+}
+.field:focus {
+  outline: none;
+  border-bottom-color: var(--color-green-900);
+  box-shadow: 0 1px 0 var(--color-green-900);
+}
+.field:focus-visible {
+  outline: none;
+}
+.field[aria-invalid="true"] {
+  border-bottom-color: var(--color-brass);
+}
+select.field {
+  appearance: none;
+  background-image: linear-gradient(45deg, transparent 50%, var(--color-green-900) 50%),
+    linear-gradient(135deg, var(--color-green-900) 50%, transparent 50%);
+  background-position: calc(100% - 14px) 55%, calc(100% - 9px) 55%;
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+}
+.label {
+  display: block;
+  font-size: 0.72rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--color-ink-muted);
+}
+
+/* Range slider */
+input[type="range"].range {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 1px;
+  background: var(--color-green-900);
+  margin: 1.1rem 0;
+  cursor: pointer;
+}
+input[type="range"].range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 1.1rem;
+  height: 1.1rem;
+  border-radius: 50%;
+  background: var(--color-green-900);
+  border: 3px solid var(--color-cream-100);
+  box-shadow: 0 0 0 1px var(--color-green-900);
+}
+input[type="range"].range::-moz-range-thumb {
+  width: 1.1rem;
+  height: 1.1rem;
+  border-radius: 50%;
+  background: var(--color-green-900);
+  border: 3px solid var(--color-cream-100);
+  box-shadow: 0 0 0 1px var(--color-green-900);
+}
+
+/* Typing dots in the enquiry demo */
+@keyframes dot {
+  0%,
+  80%,
+  100% {
+    opacity: 0.25;
+  }
+  40% {
+    opacity: 1;
+  }
+}
+.typing span {
+  display: inline-block;
+  width: 5px;
+  height: 5px;
+  margin: 0 2px;
+  border-radius: 50%;
+  background: currentColor;
+  animation: dot 1.2s infinite;
+}
+.typing span:nth-child(2) {
+  animation-delay: 0.15s;
+}
+.typing span:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+/* ------------------------------------------------------------------
+   Illustrative website and phone, drawn in CSS. Everything is sized in em and
+   the root font size follows the container width, so the scene scales as one.
+------------------------------------------------------------------- */
+.mock-scene {
+  container-type: inline-size;
+}
+.mock {
+  position: relative;
+  font-size: calc(100cqw / 92);
+  aspect-ratio: 92 / 60;
+  line-height: 1.35;
+  color: var(--color-ink);
+  font-family: var(--font-text);
+}
+.mk-browser {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 72em;
+  height: 52em;
+  overflow: hidden;
+  background: var(--color-cream-50);
+  border: 0.1em solid var(--color-cream-300);
+  box-shadow: 0 2.4em 5em -2.4em rgb(11 42 30 / 0.3);
+}
+.mk-bar {
+  display: flex;
+  align-items: center;
+  height: 3.6em;
+  padding: 0 1.6em;
+  background: var(--color-cream-100);
+  border-bottom: 0.08em solid var(--color-cream-300);
+}
+.mk-url {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26em;
+  height: 2.1em;
+  margin: 0 auto;
+  font-size: 0.85em;
+  color: var(--color-ink-muted);
+  border: 0.08em solid var(--color-cream-300);
+}
+.mk-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.7em 2.6em 1.5em;
+}
+.mk-logo {
+  font-family: var(--font-display);
+  font-size: 1.9em;
+  letter-spacing: -0.01em;
+  color: var(--color-green-900);
+}
+.mk-nav {
+  display: flex;
+  gap: 2em;
+  font-size: 0.78em;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--color-ink-muted);
+}
+.mk-body {
+  display: grid;
+  grid-template-columns: 34em 1fr;
+  gap: 3em;
+  padding: 0 2.6em;
+}
+.mk-photo {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 4 / 3.3;
+  background: var(--color-green-700);
+  color: var(--color-cream-100);
+}
+.mk-photo svg {
+  width: 40%;
+  height: auto;
+  opacity: 0.2;
+}
+.mk-thumbs {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.7em;
+  margin-top: 0.7em;
+}
+.mk-thumbs i {
+  display: block;
+  aspect-ratio: 4 / 3;
+  background: var(--color-cream-300);
+}
+.mk-thumbs i:nth-child(2) {
+  background: var(--color-green-500);
+  opacity: 0.7;
+}
+.mk-thumbs i:nth-child(4) {
+  background: var(--color-green-700);
+  opacity: 0.8;
+}
+.mk-title {
+  font-family: var(--font-display);
+  font-size: 3.3em;
+  line-height: 1.02;
+  letter-spacing: -0.02em;
+  color: var(--color-green-900);
+}
+.mk-sub {
+  margin-top: 0.7em;
+  font-size: 1em;
+  color: var(--color-ink-muted);
+}
+.mk-facts {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1em 2em;
+  margin-top: 1.8em;
+  padding-top: 1.3em;
+  border-top: 0.08em solid var(--color-cream-300);
+}
+.mk-facts small {
+  display: block;
+  font-size: 0.7em;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--color-ink-muted);
+}
+.mk-facts b {
+  font-weight: 500;
+  font-size: 1em;
+}
+.mk-price {
+  margin-top: 1.1em;
+  font-family: var(--font-display);
+  font-size: 1.7em;
+  color: var(--color-green-900);
+}
+.mk-btns {
+  display: flex;
+  gap: 0.9em;
+  margin-top: 1.2em;
+}
+.mk-btn {
+  padding: 1.1em 1.7em;
+  font-size: 0.72em;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  background: var(--color-green-900);
+  color: var(--color-cream-100);
+}
+.mk-btn.alt {
+  background: transparent;
+  color: var(--color-green-900);
+  border: 0.1em solid rgb(11 42 30 / 0.6);
+}
+.mk-phone {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 23em;
+  height: 46em;
+  padding: 0.65em;
+  border-radius: 2.7em;
+  background: var(--color-green-900);
+  box-shadow: 0 2.4em 5em -2em rgb(11 42 30 / 0.5);
+}
+.mk-screen {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+  border-radius: 2.1em;
+  background: var(--color-cream-50);
+}
+.mk-chat-head {
+  padding: 2em 1.5em 1em;
+  border-bottom: 0.08em solid var(--color-cream-300);
+}
+.mk-chat-head b {
+  display: block;
+  font-weight: 500;
+  font-size: 0.95em;
+}
+.mk-chat-head small {
+  font-size: 0.75em;
+  color: var(--color-ink-muted);
+}
+.mk-msgs {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 0.8em;
+  padding: 1.3em 1.2em;
+}
+.mk-bubble {
+  max-width: 84%;
+  padding: 0.85em 1.05em;
+  font-size: 0.84em;
+  line-height: 1.4;
+}
+.mk-bubble.in {
+  align-self: flex-end;
+  background: var(--color-green-700);
+  color: var(--color-cream-100);
+  border-radius: 1.2em 1.2em 0.3em 1.2em;
+}
+.mk-bubble.out {
+  align-self: flex-start;
+  background: var(--color-cream-300);
+  border-radius: 1.2em 1.2em 1.2em 0.3em;
+}
+.mk-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5em;
+}
+.mk-chip {
+  padding: 0.45em 1em;
+  font-size: 0.74em;
+  border: 0.1em solid var(--color-green-700);
+  color: var(--color-green-700);
+  border-radius: 2em;
+}
+@container (max-width: 34rem) {
+  .mock {
+    font-size: calc(100cqw / 30);
+    aspect-ratio: auto;
+  }
+  .mk-browser {
+    display: none;
+  }
+  .mk-phone {
+    position: relative;
+    margin-inline: auto;
+    width: 26em;
+    height: 48em;
+  }
+}
